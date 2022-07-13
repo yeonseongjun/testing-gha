@@ -43,13 +43,13 @@ jobs:
 
       # The below is an exact copy of app-api GHA. Needs more customization.
 
-      - name: Check out ecs-tools action
-        uses: actions/checkout@v3
-        with:
-          path: ecs-tools
-          repository: seomoz/ecs-tools
-          ref: refs/heads/v1
-          ssh-key: ${{ secrets.MOZBOT_SSH_PRIVATE_KEY }}
+      # - name: Check out ecs-tools action
+      #   uses: actions/checkout@v3
+      #   with:
+      #     path: ecs-tools
+      #     repository: seomoz/ecs-tools
+      #     ref: refs/heads/v1
+      #     ssh-key: ${{ secrets.MOZBOT_SSH_PRIVATE_KEY }}
 
       # - name: Build and release a new version
       #   uses: ./ecs-tools
