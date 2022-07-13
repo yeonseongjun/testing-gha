@@ -1,0 +1,76 @@
+# on merge to main
+name: Deploy to Dev / Stage
+on:
+  # Should be push, but for testing purpose adding pull_request
+  pull_request:
+    branches:
+      - main
+
+env:
+  DEV_AWS_ACCOUNT_NUM: 747222780735
+  STAGE_AWS_ACCOUNT_NUM: 953066451365
+  TEAM: "user-services"
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        account:
+          # - ${{ env.DEV_AWS_ACCOUNT_NUM }}
+          # - ${{ env.STAGE_AWS_ACCOUNT_NUM }}
+          - 747222780735
+          - 953066451365
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ matrix.account }}:role/temporary-gha-role
+
+      - name: Test AWS Credentials
+        run: |
+          aws sts get-caller-identity
+          aws s3 ls
+
+      # The below is an exact copy of app-api GHA. Needs more customization.
+
+      - name: Check out ecs-tools action
+        uses: actions/checkout@v3
+        with:
+          path: ecs-tools
+          repository: seomoz/ecs-tools
+          ref: refs/heads/v1
+          ssh-key: ${{ secrets.MOZBOT_SSH_PRIVATE_KEY }}
+
+      # - name: Build and release a new version
+      #   uses: ./ecs-tools
+      #   with:
+      #     command: build
+      #     aws_account_id: ${{ env.DEV_AWS_ACCOUNT_NUM }}
+      #     aws_assume_role: github_actions_assumed_role
+      #     aws_role_external_id: ${{ secrets.DEV_MOZTERRAFORM_EXTERNAL_ID }}
+      #     extra_build_args: --build-arg GITHUB_TOKEN=${{ secrets.MOZBOT_PAT }}
+      #     environment: dev
+      #     team: ${{ env.TEAM }}
+      #     version: ${{ github.sha }}
+
+      # - name: Deploy the new version
+      #   uses: ./ecs-tools
+      #   with:
+      #     command: deploy
+      #     aws_account_id: ${{ env.DEV_AWS_ACCOUNT_NUM }}
+      #     aws_assume_role: github_actions_assumed_role
+      #     aws_role_external_id: ${{ secrets.DEV_MOZTERRAFORM_EXTERNAL_ID }}
+      #     cluster_name: moz-classic-microservices
+      #     environment: dev
+      #     team: ${{ env.TEAM }}
+      #     version: ${{ github.sha }}
